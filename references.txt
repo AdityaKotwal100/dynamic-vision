@@ -1,0 +1,2 @@
+https://wellsr.com/python/object-detection-from-videos-with-yolo/
+https://imageai.readthedocs.io/en/latest/
