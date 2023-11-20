@@ -6,3 +6,5 @@ output_videos/
 .env
 responses
 images
+*.mp4
+*.avi
