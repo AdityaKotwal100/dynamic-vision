@@ -3,3 +3,6 @@ input_videos/
 output_videos/
 *.pyc
 .DS_Store
+.env
+responses
+images
