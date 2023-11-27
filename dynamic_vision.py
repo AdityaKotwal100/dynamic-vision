@@ -8,6 +8,7 @@ from advertise import ImageGenerator
 from copy import deepcopy
 from PIL import Image
 import matplotlib.pyplot as plt
+from keras_model import DarkNet
 
 
 class DynamicVision:
@@ -18,9 +19,11 @@ class DynamicVision:
         self.model = None
         self.predictor = ImageClassification()
         self.image_generator = ImageGenerator()
+        self.video_object_detector = VideoObjectDetection()
         self.write_video = write_video
         self.enable_ads = enable_ads
         self.original_video = None
+        self.pred_dict = {}
 
     def capture_video(self, file_name: str) -> List[np.ndarray]:
         video_frames = []
@@ -66,6 +69,7 @@ class DynamicVision:
         for result in prediction_results:
             prediction, probability = result
             if probability > max_prob_so_far:
+                print(prediction)
                 max_result = [(prediction, probability)]
                 max_prob_so_far = probability
 
@@ -116,6 +120,7 @@ class DynamicVision:
         else:
             ad_file_path = self.image_generator.generate_image(previous_prediction)
             previous_ad_path = ad_file_path
+            self.pred_dict[previous_prediction] = ad_file_path
         new_result = current_result + (ad_file_path,)
         video_results[0] = new_result
         ad_file_path = ""
@@ -125,11 +130,15 @@ class DynamicVision:
                 current_result = video_results[result_idx]
                 # TODO: Check the Condition RHS
                 if not current_prediction:
-                    ad_file_path = ""
+                    # ad_file_path = ""
+                    ad_file_path = self.pred_dict[previous_prediction]
+                elif current_prediction in self.pred_dict:
+                    ad_file_path = self.pred_dict[current_prediction]
                 else:
                     ad_file_path = self.image_generator.generate_image(
                         current_prediction
                     )
+                    self.pred_dict[current_prediction] = ad_file_path
                 previous_ad_path = ad_file_path
             else:
                 ad_file_path = previous_ad_path
@@ -173,7 +182,7 @@ class DynamicVision:
         video = cv2.VideoWriter(
             "final.avi",
             cv2.VideoWriter_fourcc(*"DIVX"),
-            20.0,
+            10.0,
             (width, height),
             isColor=True,
         )
@@ -182,12 +191,19 @@ class DynamicVision:
         cv2.destroyAllWindows()
         video.release()
 
-    def activate(self, input_file_path):
+    def activate(self, input_file_path, selected_model="resnet"):
+        # Capture the input video
         input_video = self.capture_video(input_file_path)
         self.original_video = input_video
-        self.initialize_model()
-        classification_result = self.classify_objects(input_video)
+        if selected_model == "darknet":
+            d_net = DarkNet()
+            classification_result = d_net.classify_objects(input_video)
+        elif selected_model == "resnet":
+            self.initialize_model()
+            classification_result = self.classify_objects(input_video)
         if self.enable_ads:
             ad_result = self.generate_ads(classification_result)
             new_video = self.write_ads_to_video(ad_result)
             self.__save_ad_video(new_video)
+        self.model = "yolov3.pt"
+        self.classify_objects_in_video(input_file_path)

@@ -15,7 +15,8 @@ load_dotenv()
 
 class ImageGenerator:
     def __init__(self):
-        self.PROMPT = 'A banner with text in English providing advertisements offering promotions for a "{}"'
+        # self.PROMPT = 'A banner with text in English providing advertisements offering promotions for a "{}"'
+        self.PROMPT = r"An advertisement for a {}"
         self.counter = 0
 
     def check_counter(self):
@@ -70,3 +71,8 @@ class ImageGenerator:
                 png.write(image_data)
 
         return image_file
+
+
+if __name__ == "__main__":
+    d = ImageGenerator()
+    d.generate_image("Car")

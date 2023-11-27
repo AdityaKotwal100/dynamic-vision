@@ -12,4 +12,4 @@ def check_prerequisites():
 check_prerequisites()
 d = DynamicVision()
 d.initialize_model()
-d.activate(input_file_path="input_video_1.mp4")
+d.activate(input_file_path="home.mp4")
