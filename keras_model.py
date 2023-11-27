@@ -34,6 +34,90 @@ class BoundBox:
 
 
 class DarkNet:
+    def __init__(self) -> None:
+        self.labels = [
+            "person",
+            "bicycle",
+            "car",
+            "motorbike",
+            "aeroplane",
+            "bus",
+            "train",
+            "truck",
+            "boat",
+            "traffic light",
+            "fire hydrant",
+            "stop sign",
+            "parking meter",
+            "bench",
+            "bird",
+            "cat",
+            "dog",
+            "horse",
+            "sheep",
+            "cow",
+            "elephant",
+            "bear",
+            "zebra",
+            "giraffe",
+            "backpack",
+            "umbrella",
+            "handbag",
+            "tie",
+            "suitcase",
+            "frisbee",
+            "skis",
+            "snowboard",
+            "sports ball",
+            "kite",
+            "baseball bat",
+            "baseball glove",
+            "skateboard",
+            "surfboard",
+            "tennis racket",
+            "bottle",
+            "wine glass",
+            "cup",
+            "fork",
+            "knife",
+            "spoon",
+            "bowl",
+            "banana",
+            "apple",
+            "sandwich",
+            "orange",
+            "broccoli",
+            "carrot",
+            "hot dog",
+            "pizza",
+            "donut",
+            "cake",
+            "chair",
+            "sofa",
+            "pottedplant",
+            "bed",
+            "diningtable",
+            "toilet",
+            "tvmonitor",
+            "laptop",
+            "mouse",
+            "remote",
+            "keyboard",
+            "cell phone",
+            "microwave",
+            "oven",
+            "toaster",
+            "sink",
+            "refrigerator",
+            "book",
+            "clock",
+            "vase",
+            "scissors",
+            "teddy bear",
+            "hair drier",
+            "toothbrush",
+        ]
+
     def _sigmoid(self, x):
         return 1.0 / (1.0 + np.exp(-x))
 
@@ -123,7 +207,7 @@ class DarkNet:
     def load_image_pixels(self, image, shape):
         # # load the image to get its shape
         # image = load_img(filename)
-        width, height = image.size
+        width, height, _ = image.shape
         # # load the image with the required size
         image = cv2.resize(image, shape)
         # image = load_img(filename, target_size=shape)
@@ -175,141 +259,55 @@ class DarkNet:
         # show the plot
         pyplot.show()
 
-    """
-            video_results = []
-            for frame_no, frame in enumerate(input_frames):
-                image_result = self.classify_object_in_image(frame)
-                if best_prediction := self.__get_highest_probability_prediction(
-                    image_result
-                ):
-                    current_prediction, current_probability = best_prediction[0]
-                else:
-                    current_prediction, current_probability = None, None
-                video_results.append((frame_no, current_prediction, current_probability))
-
-            return video_results
-    """
-
     def classify_objects(self, input_frames):
         # load yolov3 model
         prediction_results = []
+        input_w, input_h = 416, 416
+        # define the anchors
+        anchors = [
+            [116, 90, 156, 198, 373, 326],
+            [30, 61, 62, 45, 59, 119],
+            [10, 13, 16, 30, 33, 23],
+        ]
+        # define the probability threshold for detected objects
+        class_threshold = 0.6
         model = load_model("models/keras_model.h5")
         for frame_no, frame in enumerate(input_frames):
+            print(f"{frame_no} out of {len(input_frames)}")
             # define the expected input shape for the model
-            input_w, input_h = 416, 416
+
             # load and prepare image
-            image, image_w, image_h = self.load_image_pixels(
-                frame, (input_w, input_h)
-            )
+            image, image_w, image_h = self.load_image_pixels(frame, (input_w, input_h))
             # make prediction
+
             yhat = model.predict(image)
+
             # summarize the shape of the list of arrays
-            print([a.shape for a in yhat])
-            # define the anchors
-            anchors = [
-                [116, 90, 156, 198, 373, 326],
-                [30, 61, 62, 45, 59, 119],
-                [10, 13, 16, 30, 33, 23],
-            ]
-            # define the probability threshold for detected objects
-            class_threshold = 0.6
+
             boxes = []
             for i in range(len(yhat)):
                 # decode the output of the network
                 boxes += self.decode_netout(
                     yhat[i][0], anchors[i], class_threshold, input_h, input_w
                 )
+
             # correct the sizes of the bounding boxes for the shape of the image
             self.correct_yolo_boxes(boxes, image_h, image_w, input_h, input_w)
+
             # suppress non-maximal boxes
-            self.do_nms(boxes, 0.5)
-            # define the labels
-            labels = [
-                "person",
-                "bicycle",
-                "car",
-                "motorbike",
-                "aeroplane",
-                "bus",
-                "train",
-                "truck",
-                "boat",
-                "traffic light",
-                "fire hydrant",
-                "stop sign",
-                "parking meter",
-                "bench",
-                "bird",
-                "cat",
-                "dog",
-                "horse",
-                "sheep",
-                "cow",
-                "elephant",
-                "bear",
-                "zebra",
-                "giraffe",
-                "backpack",
-                "umbrella",
-                "handbag",
-                "tie",
-                "suitcase",
-                "frisbee",
-                "skis",
-                "snowboard",
-                "sports ball",
-                "kite",
-                "baseball bat",
-                "baseball glove",
-                "skateboard",
-                "surfboard",
-                "tennis racket",
-                "bottle",
-                "wine glass",
-                "cup",
-                "fork",
-                "knife",
-                "spoon",
-                "bowl",
-                "banana",
-                "apple",
-                "sandwich",
-                "orange",
-                "broccoli",
-                "carrot",
-                "hot dog",
-                "pizza",
-                "donut",
-                "cake",
-                "chair",
-                "sofa",
-                "pottedplant",
-                "bed",
-                "diningtable",
-                "toilet",
-                "tvmonitor",
-                "laptop",
-                "mouse",
-                "remote",
-                "keyboard",
-                "cell phone",
-                "microwave",
-                "oven",
-                "toaster",
-                "sink",
-                "refrigerator",
-                "book",
-                "clock",
-                "vase",
-                "scissors",
-                "teddy bear",
-                "hair drier",
-                "toothbrush",
-            ]
+            self.do_nms(boxes, 0.5)  # <- Time taking
             # get the details of the detected objects
-            v_boxes, v_labels, v_scores = self.get_boxes(boxes, labels, class_threshold)
-            # summarize what we found
-            for i in range(len(v_boxes)):
-                print(v_labels[i], v_scores[i])
+            v_boxes, v_labels, v_scores = self.get_boxes(
+                boxes, self.labels, class_threshold
+            )
+
+            if mapping_dict := dict(zip(v_labels, v_scores)):
+                best_match = max(mapping_dict.items(), key=lambda item: item[1])
+                result = (frame_no, best_match[0], best_match[1])
+            else:
+                result = (frame_no, None, None)
+            prediction_results.append(result)
+
             # draw what we found
             # self.draw_boxes(frame, v_boxes, v_labels, v_scores)
+        return prediction_results

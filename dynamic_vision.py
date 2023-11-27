@@ -19,7 +19,6 @@ class DynamicVision:
         self.model = None
         self.predictor = ImageClassification()
         self.image_generator = ImageGenerator()
-        self.video_object_detector = VideoObjectDetection()
         self.write_video = write_video
         self.enable_ads = enable_ads
         self.original_video = None
@@ -114,7 +113,6 @@ class DynamicVision:
         _, previous_prediction, _ = video_results[0]
         current_result = video_results[0]
         previous_ad_path = ""
-        # TODO: Check the Condition RHS
         if not previous_prediction:
             ad_file_path = ""
         else:
@@ -128,7 +126,6 @@ class DynamicVision:
             _, current_prediction, _ = video_results[result_idx]
             if previous_prediction != current_prediction:
                 current_result = video_results[result_idx]
-                # TODO: Check the Condition RHS
                 if not current_prediction:
                     # ad_file_path = ""
                     ad_file_path = self.pred_dict[previous_prediction]
@@ -162,7 +159,7 @@ class DynamicVision:
         return original_frame
 
     def write_ads_to_video(self, ad_result):
-        add_generated_video = deepcopy(self.original_video)
+        ad_generated_video = deepcopy(self.original_video)
         new_video = []
         for frame_no, frame_result in enumerate(ad_result):
             _, _, _, ad_file_path = frame_result
@@ -170,10 +167,10 @@ class DynamicVision:
             if ad_file_path:
                 advertisement = self.__read_image(ad_file_path)
                 new_frame = self.__overwrite_image(
-                    add_generated_video[frame_no], advertisement
+                    ad_generated_video[frame_no], advertisement
                 )
             else:
-                new_frame = add_generated_video[frame_no]
+                new_frame = ad_generated_video[frame_no]
             new_video.append(new_frame)
         return new_video
 
