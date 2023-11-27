@@ -1,14 +1,23 @@
 from typing import List
 import cv2
 import numpy as np
-from imageai.Detection import VideoObjectDetection
 import os
-from imageai.Classification import ImageClassification
 from advertise import ImageGenerator
 from copy import deepcopy
 from PIL import Image
 import matplotlib.pyplot as plt
-from keras_model import DarkNet
+from darknet import DarkNet
+from resnet import Resnet50
+import yaml
+
+
+def decide_strategy():
+    with open("model.yaml") as f:
+        result = yaml.load(f, Loader=yaml.FullLoader)
+        if result["model"] == "darknet":
+            return DarkNet()
+        elif result["model"] == "resnet50":
+            return Resnet50()
 
 
 class DynamicVision:
@@ -17,11 +26,10 @@ class DynamicVision:
         self.output_folder_path = "output_videos"
         self.model_folder_path = "models"
         self.model = None
-        self.predictor = ImageClassification()
         self.image_generator = ImageGenerator()
-        self.write_video = write_video
         self.enable_ads = enable_ads
         self.original_video = None
+        self.model_strategy = decide_strategy()
         self.pred_dict = {}
 
     def capture_video(self, file_name: str) -> List[np.ndarray]:
@@ -38,75 +46,6 @@ class DynamicVision:
         cv2.destroyAllWindows()
 
         return video_frames
-
-    def classify_objects_in_video(self, input_video_path: str):
-        if not self.model:
-            raise Exception("Model not set. Set model using obj.set_model()")
-        vid_obj_detect = VideoObjectDetection()
-        vid_obj_detect.setModelTypeAsYOLOv3()
-        vid_obj_detect.setModelPath(os.path.join(self.model_folder_path, self.model))
-        vid_obj_detect.loadModel()
-        detected_vid_obj = vid_obj_detect.detectObjectsFromVideo(
-            input_file_path=os.path.join(self.input_folder_path, input_video_path),
-            output_file_path=os.path.join(
-                self.output_folder_path, f"{input_video_path[:-4]}_output"
-            ),
-            frames_per_second=40,
-            log_progress=True,
-            return_detected_frame=True,
-        )
-
-    def set_model(self, model: str):
-        if not os.path.exists(os.path.join(self.model_folder_path, model)):
-            raise Exception("Model not present in directory")
-
-        self.model = model
-
-    def __get_highest_probability_prediction(self, prediction_results):
-        max_result = []
-        max_prob_so_far = 0
-        for result in prediction_results:
-            prediction, probability = result
-            if probability > max_prob_so_far:
-                print(prediction)
-                max_result = [(prediction, probability)]
-                max_prob_so_far = probability
-
-        return max_result
-
-    def __get_top_n_predictions(self, prediction_results, n=10):
-        return sorted(prediction_results, key=lambda x: x[0])[:n]
-
-    def classify_object_in_image(self, image, threshold=80):
-        predictions, probabilities = self.predictor.classifyImage(
-            image, result_count=10
-        )
-        return [
-            (eachPrediction, eachProbability)
-            for eachPrediction, eachProbability in zip(predictions, probabilities)
-            if eachProbability >= threshold
-        ]
-
-    def initialize_model(self):
-        self.predictor.setModelTypeAsResNet50()
-        self.predictor.setModelPath(
-            os.path.join(self.model_folder_path, "resnet50-19c8e357.pth")
-        )
-        self.predictor.loadModel()
-
-    def classify_objects(self, input_frames):
-        video_results = []
-        for frame_no, frame in enumerate(input_frames):
-            image_result = self.classify_object_in_image(frame)
-            if best_prediction := self.__get_highest_probability_prediction(
-                image_result
-            ):
-                current_prediction, current_probability = best_prediction[0]
-            else:
-                current_prediction, current_probability = None, None
-            video_results.append((frame_no, current_prediction, current_probability))
-
-        return video_results
 
     def generate_ads(self, video_results):
         ## Prediction could be none
@@ -188,19 +127,15 @@ class DynamicVision:
         cv2.destroyAllWindows()
         video.release()
 
-    def activate(self, input_file_path, selected_model="resnet"):
+    def activate(self, input_file_path):
         # Capture the input video
         input_video = self.capture_video(input_file_path)
+        input_video = input_video[:15]
         self.original_video = input_video
-        if selected_model == "darknet":
-            d_net = DarkNet()
-            classification_result = d_net.classify_objects(input_video)
-        elif selected_model == "resnet":
-            self.initialize_model()
-            classification_result = self.classify_objects(input_video)
+        classification_result = self.model_strategy.classify_objects(input_video)
+
         if self.enable_ads:
             ad_result = self.generate_ads(classification_result)
             new_video = self.write_ads_to_video(ad_result)
             self.__save_ad_video(new_video)
-        self.model = "yolov3.pt"
-        self.classify_objects_in_video(input_file_path)
+        Resnet50().classify_objects_in_video(input_file_path)

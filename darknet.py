@@ -7,6 +7,7 @@ from keras.preprocessing.image import img_to_array
 from matplotlib import pyplot
 from matplotlib.patches import Rectangle
 import cv2
+from strategy import ModelStrategy
 
 
 class BoundBox:
@@ -33,7 +34,7 @@ class BoundBox:
         return self.score
 
 
-class DarkNet:
+class DarkNet(ModelStrategy):
     def __init__(self) -> None:
         self.labels = [
             "person",
