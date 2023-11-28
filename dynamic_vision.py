@@ -136,7 +136,7 @@ class DynamicVision:
 
     def __save_ad_video(self, output_video, input_file_path):
         height, width = output_video[0].shape[:2]
-        file_name_without_extension = input_file_path[:4]
+        file_name_without_extension = input_file_path[:-4]
         video = cv2.VideoWriter(
             f"{file_name_without_extension}_advertisement.avi",
             cv2.VideoWriter_fourcc(*"DIVX"),
