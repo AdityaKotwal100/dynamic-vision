@@ -21,11 +21,8 @@ def decide_strategy():
 
 
 class DynamicVision:
-    def __init__(self, write_video=True, enable_ads=True) -> None:
+    def __init__(self, enable_ads=True) -> None:
         self.input_folder_path = "input_videos"
-        self.output_folder_path = "output_videos"
-        self.model_folder_path = "models"
-        self.model = None
         self.image_generator = ImageGenerator()
         self.enable_ads = enable_ads
         self.original_video = None
@@ -66,7 +63,6 @@ class DynamicVision:
             if previous_prediction != current_prediction:
                 current_result = video_results[result_idx]
                 if not current_prediction:
-                    # ad_file_path = ""
                     ad_file_path = self.pred_dict[previous_prediction]
                 elif current_prediction in self.pred_dict:
                     ad_file_path = self.pred_dict[current_prediction]
@@ -97,11 +93,25 @@ class DynamicVision:
         original_frame[start_height:height1, start_width:width1] = advertisement
         return original_frame
 
+    def __write_prediction_to_image(self, input_image, prediction):
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        scale = 1
+        color = (0, 0, 255)
+        thickness = 2
+        text_size = cv2.getTextSize(prediction, font, scale, thickness)[0]
+        text_width, text_height = text_size
+        _, img_width = input_image.shape[:2]
+        text_x = img_width - text_width - 20
+        text_y = text_height + 20
+        return cv2.putText(
+            input_image, prediction, (text_x, text_y), font, scale, color, thickness
+        )
+
     def write_ads_to_video(self, ad_result):
         ad_generated_video = deepcopy(self.original_video)
         new_video = []
         for frame_no, frame_result in enumerate(ad_result):
-            _, _, _, ad_file_path = frame_result
+            _, prediction, _, ad_file_path = frame_result
 
             if ad_file_path:
                 advertisement = self.__read_image(ad_file_path)
@@ -110,7 +120,13 @@ class DynamicVision:
                 )
             else:
                 new_frame = ad_generated_video[frame_no]
-            new_video.append(new_frame)
+            if prediction:
+                new_frame_with_text = self.__write_prediction_to_image(
+                    new_frame, prediction
+                )
+            else:
+                new_frame_with_text = new_frame
+            new_video.append(new_frame_with_text)
         return new_video
 
     def __save_ad_video(self, output_video):
@@ -130,7 +146,6 @@ class DynamicVision:
     def activate(self, input_file_path):
         # Capture the input video
         input_video = self.capture_video(input_file_path)
-        input_video = input_video[:15]
         self.original_video = input_video
         classification_result = self.model_strategy.classify_objects(input_video)
 
