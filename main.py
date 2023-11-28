@@ -10,5 +10,6 @@ def check_prerequisites():
 
 
 check_prerequisites()
-d = DynamicVision()
-d.activate(input_file_path="home.mp4")
+d = DynamicVision(enable_ads=False)
+# d.activate(input_file_path="home.mp4")
+d.analyze(input_file_path="home.mp4")

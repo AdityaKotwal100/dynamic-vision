@@ -1,6 +1,7 @@
 models/
 input_videos/
 output_videos/
+analytics/
 *.pyc
 .DS_Store
 .env

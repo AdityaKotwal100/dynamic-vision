@@ -3,3 +3,6 @@ imageai==2.1.6
 opencv-python==4.8.0.76
 torch==2.1.0
 torchvision==0.16.0
+keras==2.14.0
+python-dotenv==1.0.0
+openai==0.28.0

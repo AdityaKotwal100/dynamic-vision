@@ -1,8 +1,6 @@
 from imageai.Detection import VideoObjectDetection
 import os
 from imageai.Classification import ImageClassification
-from advertise import ImageGenerator
-import matplotlib.pyplot as plt
 from strategy import ModelStrategy
 
 
@@ -69,15 +67,20 @@ class Resnet50(ModelStrategy):
 
     def classify_objects(self, input_frames):
         self.initialize_model()
-        video_results = []
+        video_results_best_prediction = []
+        video_results_top_n_predictions = []
+
         for frame_no, frame in enumerate(input_frames):
-            image_result = self.classify_object_in_image(frame)
-            if best_prediction := self.__get_highest_probability_prediction(
-                image_result
-            ):
+            image_result = self.classify_object_in_image(frame, threshold=0)
+            best_prediction = self.__get_highest_probability_prediction(image_result)
+            all_predictions = self.__get_top_n_predictions(image_result)
+            if best_prediction:
                 current_prediction, current_probability = best_prediction[0]
             else:
                 current_prediction, current_probability = None, None
-            video_results.append((frame_no, current_prediction, current_probability))
+            video_results_best_prediction.append(
+                (frame_no, current_prediction, current_probability)
+            )
+            video_results_top_n_predictions.append((frame_no, all_predictions))
 
-        return video_results
+        return video_results_best_prediction, video_results_top_n_predictions

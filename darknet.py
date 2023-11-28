@@ -311,4 +311,4 @@ class DarkNet(ModelStrategy):
 
             # draw what we found
             # self.draw_boxes(frame, v_boxes, v_labels, v_scores)
-        return prediction_results
+        return prediction_results, None

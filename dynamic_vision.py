@@ -3,21 +3,23 @@ import cv2
 import numpy as np
 import os
 from advertise import ImageGenerator
+from analytics import AnalyzeDynamicVision
 from copy import deepcopy
 from PIL import Image
-import matplotlib.pyplot as plt
 from darknet import DarkNet
 from resnet import Resnet50
 import yaml
 
 
 def decide_strategy():
-    with open("model.yaml") as f:
+    with open("config.yaml") as f:
         result = yaml.load(f, Loader=yaml.FullLoader)
         if result["model"] == "darknet":
             return DarkNet()
         elif result["model"] == "resnet50":
             return Resnet50()
+        else:
+            raise NotImplementedError()
 
 
 class DynamicVision:
@@ -28,6 +30,7 @@ class DynamicVision:
         self.original_video = None
         self.model_strategy = decide_strategy()
         self.pred_dict = {}
+        self.analyzer = AnalyzeDynamicVision()
 
     def capture_video(self, file_name: str) -> List[np.ndarray]:
         video_frames = []
@@ -147,10 +150,17 @@ class DynamicVision:
         # Capture the input video
         input_video = self.capture_video(input_file_path)
         self.original_video = input_video
-        classification_result = self.model_strategy.classify_objects(input_video)
+        classification_result, _ = self.model_strategy.classify_objects(input_video)
 
         if self.enable_ads:
             ad_result = self.generate_ads(classification_result)
             new_video = self.write_ads_to_video(ad_result)
             self.__save_ad_video(new_video)
         Resnet50().classify_objects_in_video(input_file_path)
+
+    def analyze(self, input_file_path):
+        # Capture the input video
+        input_video = self.capture_video(input_file_path)
+        self.original_video = input_video
+        _, all_classification = Resnet50().classify_objects(input_video)
+        self.analyzer.analyze(all_classification)
