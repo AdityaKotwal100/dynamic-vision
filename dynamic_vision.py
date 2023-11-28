@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import cv2
 import numpy as np
 import os
@@ -23,10 +23,12 @@ def decide_strategy():
 
 
 class DynamicVision:
-    def __init__(self, enable_ads=True) -> None:
+    def __init__(self, enable_ads=True, enable_multi_object_detection=False) -> None:
         self.input_folder_path = "input_videos"
+        self.output_folder_path = "input_videos"
         self.image_generator = ImageGenerator()
         self.enable_ads = enable_ads
+        self.enable_multi_object_detection = enable_multi_object_detection
         self.original_video = None
         self.model_strategy = decide_strategy()
         self.pred_dict = {}
@@ -47,7 +49,7 @@ class DynamicVision:
 
         return video_frames
 
-    def generate_ads(self, video_results):
+    def generate_ads(self, video_results: List[Tuple]):
         ## Prediction could be none
         _, previous_prediction, _ = video_results[0]
         current_result = video_results[0]
@@ -132,10 +134,11 @@ class DynamicVision:
             new_video.append(new_frame_with_text)
         return new_video
 
-    def __save_ad_video(self, output_video):
+    def __save_ad_video(self, output_video, input_file_path):
         height, width = output_video[0].shape[:2]
+        file_name_without_extension = input_file_path[:4]
         video = cv2.VideoWriter(
-            "final.avi",
+            f"{file_name_without_extension}_advertisement.avi",
             cv2.VideoWriter_fourcc(*"DIVX"),
             10.0,
             (width, height),
@@ -155,12 +158,14 @@ class DynamicVision:
         if self.enable_ads:
             ad_result = self.generate_ads(classification_result)
             new_video = self.write_ads_to_video(ad_result)
-            self.__save_ad_video(new_video)
-        Resnet50().classify_objects_in_video(input_file_path)
+            self.__save_ad_video(new_video, input_file_path)
+        if self.enable_multi_object_detection:
+            Resnet50().classify_objects_in_video(input_file_path)
 
     def analyze(self, input_file_path):
         # Capture the input video
         input_video = self.capture_video(input_file_path)
+        input_video = input_video[:5]
         self.original_video = input_video
         _, all_classification = Resnet50().classify_objects(input_video)
         self.analyzer.analyze(all_classification)

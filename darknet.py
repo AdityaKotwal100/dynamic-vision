@@ -272,7 +272,7 @@ class DarkNet(ModelStrategy):
         ]
         # define the probability threshold for detected objects
         class_threshold = 0.6
-        model = load_model("models/keras_model.h5")
+        model = load_model("models/darknet.h5")
         for frame_no, frame in enumerate(input_frames):
             print(f"{frame_no} out of {len(input_frames)}")
             # define the expected input shape for the model

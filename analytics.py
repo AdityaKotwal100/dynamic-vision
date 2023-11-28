@@ -32,7 +32,9 @@ class AnalyzeDynamicVision:
                 zoom_size = [0] * len(values)
                 zoom_size[max_index] = 0.2
                 plt.pie(values, labels=labels, explode=zoom_size)
-            # Save the chart image
+            else:
+                raise NotImplementedError()
             chart_filename = f"frame_{frame_no + 1}_{self.chart_type}_chart.png"
+            plt.title(chart_filename)
             plt.savefig(os.path.join(self.analytics_path, chart_filename))
-            plt.close()  # Close the plot to avoid displaying it
+            plt.close()

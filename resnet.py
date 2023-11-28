@@ -17,7 +17,7 @@ class Resnet50(ModelStrategy):
         vid_obj_detect.setModelTypeAsYOLOv3()
         vid_obj_detect.setModelPath(os.path.join(self.model_folder_path, self.model))
         vid_obj_detect.loadModel()
-        detected_vid_obj = vid_obj_detect.detectObjectsFromVideo(
+        vid_obj_detect.detectObjectsFromVideo(
             input_file_path=os.path.join(self.input_folder_path, input_video_path),
             output_file_path=os.path.join(
                 self.output_folder_path, f"{input_video_path[:-4]}_output"
@@ -26,12 +26,6 @@ class Resnet50(ModelStrategy):
             log_progress=True,
             return_detected_frame=True,
         )
-
-    def set_model(self, model: str):
-        if not os.path.exists(os.path.join(self.model_folder_path, model)):
-            raise Exception("Model not present in directory")
-
-        self.model = model
 
     def __get_highest_probability_prediction(self, prediction_results):
         max_result = []

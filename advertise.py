@@ -15,7 +15,6 @@ load_dotenv()
 
 class ImageGenerator:
     def __init__(self):
-        # self.PROMPT = 'A banner with text in English providing advertisements offering promotions for a "{}"'
         self.PROMPT = r"An advertisement for a {}"
         self.counter = 0
 

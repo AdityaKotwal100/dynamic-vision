@@ -593,4 +593,4 @@ weight_reader = WeightReader("models/yolov3.weights")
 # set the model weights into the model
 weight_reader.load_weights(model)
 # save the model to file
-model.save("models/keras_model.h5")
+model.save("models/darknet.h5")
