@@ -165,7 +165,6 @@ class DynamicVision:
     def analyze(self, input_file_path):
         # Capture the input video
         input_video = self.capture_video(input_file_path)
-        input_video = input_video[:5]
         self.original_video = input_video
         _, all_classification = Resnet50().classify_objects(input_video)
         self.analyzer.analyze(all_classification)
