@@ -23,7 +23,7 @@ def decide_strategy():
 
 
 class DynamicVision:
-    def __init__(self, enable_ads=True, enable_multi_object_detection=False) -> None:
+    def __init__(self, enable_ads=True, enable_multi_object_detection=True) -> None:
         self.input_folder_path = "input_videos"
         self.output_folder_path = "input_videos"
         self.image_generator = ImageGenerator()

@@ -10,6 +10,7 @@ def check_prerequisites():
 
 
 check_prerequisites()
+input_file_name = "home.mp4"
 dynamic_vision = DynamicVision()
-dynamic_vision.activate(input_file_path="home.mp4")
-dynamic_vision.analyze(input_file_path="home.mp4")
+dynamic_vision.activate(input_file_path=input_file_name)
+dynamic_vision.analyze(input_file_path=input_file_name)
